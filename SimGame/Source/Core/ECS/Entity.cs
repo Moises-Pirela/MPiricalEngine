@@ -20,6 +20,8 @@ public readonly struct Entity : IEquatable<Entity>
     {
         Id = id;
     }
+    
+    public static Entity Invalid => new(-1);
 
     public bool Equals(Entity other) => Id == other.Id;
     public override bool Equals(object obj) => obj is Entity entity && Equals(entity);

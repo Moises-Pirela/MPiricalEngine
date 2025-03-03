@@ -1,4 +1,4 @@
 ﻿using MPirical;
 
-using var game = new SimGame();
+using var game = new GameSim();
 game.Run();

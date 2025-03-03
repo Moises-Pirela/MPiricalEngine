@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Input;
 using MPirical.Components;
 using MPirical.Core.ECS;
 using Microsoft.Xna.Framework;
+using MPirical.Core;
 using MPirical.Core.Math;
 using Quaternion = System.Numerics.Quaternion;
 using Vector2 = System.Numerics.Vector2;
@@ -58,7 +59,33 @@ public class PlayerInputSystem : ISystem
     /// <param name="deltaTime">Time since last update</param>
     public void Update(float deltaTime)
     {
-        // Update input states
+        var playerEntities = _world.GetArchetype(Archetypes.PLAYER).GetEntities();
+        UpdateInputState();
+            
+        foreach (var entity in playerEntities)
+        {
+            // No need to check if components exist - guaranteed by archetype
+            var player = _world.GetComponent<PlayerComponent>(entity);
+            var transform = _world.GetComponent<TransformComponent>(entity);
+            var rigidBody = _world.GetComponent<RigidBodyComponent>(entity);
+                
+            // Handle player input
+            HandleMouseLook(ref player, ref transform, deltaTime);
+            HandleMovement(ref player, ref transform, ref rigidBody, deltaTime);
+            HandleInteraction(ref player, transform);
+                
+            // Update components
+            _world.AddComponent(entity, player);
+            _world.AddComponent(entity, transform);
+            _world.AddComponent(entity, rigidBody);
+        }
+    }
+
+    /// <summary>
+    /// Updates the input state for keyboard and mouse
+    /// </summary>
+    private void UpdateInputState()
+    {
         _previousKeyboardState = _currentKeyboardState;
         _currentKeyboardState = Keyboard.GetState();
         _previousMouseState = _currentMouseState;
@@ -67,69 +94,15 @@ public class PlayerInputSystem : ISystem
         // Calculate mouse delta if mouse is locked
         if (_isMouseLocked)
         {
-            // In a real implementation, we would use raw input for better mouse handling
             _mouseDelta = new Vector2(
                 _currentMouseState.X - _previousMouseState.X,
                 _currentMouseState.Y - _previousMouseState.Y
             );
-
-            // Reset mouse position to center if needed
-            // This would be done via game window in a real implementation
         }
         else
         {
             _mouseDelta = Vector2.Zero;
         }
-
-        // Find player entity if not already found
-        if (!_playerFound)
-        {
-            FindPlayerEntity();
-        }
-
-        // Process player input if player exists
-        if (_playerFound)
-        {
-            if (!_world.HasComponent<PlayerComponent>(_playerEntity) ||
-                !_world.HasComponent<TransformComponent>(_playerEntity) ||
-                !_world.HasComponent<RigidBodyComponent>(_playerEntity))
-            {
-                _playerFound = false;
-                return;
-            }
-
-            // Get player components
-            var player = _world.GetComponent<PlayerComponent>(_playerEntity);
-            var transform = _world.GetComponent<TransformComponent>(_playerEntity);
-            var rigidBody = _world.GetComponent<RigidBodyComponent>(_playerEntity);
-
-            // Handle mouse input for camera rotation
-            HandleMouseLook(ref player, ref transform, deltaTime);
-
-            // Handle keyboard input for movement
-            HandleMovement(ref player, ref transform, ref rigidBody, deltaTime);
-
-            // Handle interaction input
-            HandleInteraction(ref player, transform);
-
-            // Update player state
-            _world.AddComponent(_playerEntity, player);
-            _world.AddComponent(_playerEntity, transform);
-            _world.AddComponent(_playerEntity, rigidBody);
-        }
-    }
-
-    /// <summary>
-    /// Find the player entity in the world
-    /// </summary>
-    private void FindPlayerEntity()
-    {
-        // In a real implementation, we would have a more efficient way to find the player
-        // For now, this is a placeholder implementation
-
-        // We might use a tag system or a singleton reference to the player entity
-
-        _playerFound = false; // Placeholder
     }
 
     /// <summary>

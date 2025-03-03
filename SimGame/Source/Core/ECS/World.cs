@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MPirical.Core.ECS
 {
@@ -8,10 +9,51 @@ namespace MPirical.Core.ECS
     /// </summary>
     public class World
     {
-        private int _nextEntityId = 0;
+        private int _nextEntityId = -1;
         private readonly Dictionary<Type, IComponentStore> _componentStores = new Dictionary<Type, IComponentStore>();
         private readonly List<ISystem> _systems = new List<ISystem>();
         private readonly Dictionary<int, HashSet<Type>> _entityComponents = new Dictionary<int, HashSet<Type>>();
+        private readonly Dictionary<Archetypes, Archetype> _archetypes = new Dictionary<Archetypes, Archetype>();
+        
+        /// <summary>
+        /// Registers a new archetype
+        /// </summary>
+        public void RegisterArchetype(Archetype archetype)
+        {
+            _archetypes[archetype.Type] = archetype;
+            
+            // Check all existing entities to see if they match this new archetype
+            foreach (var entityEntry in _entityComponents)
+            {
+                int entityId = entityEntry.Key;
+                HashSet<Type> componentTypes = entityEntry.Value;
+                
+                if (archetype.Matches(componentTypes))
+                {
+                    archetype.AddEntity(new Entity(entityId));
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Gets an archetype by name
+        /// </summary>
+        public Archetype GetArchetype(Archetypes type)
+        {
+            if (_archetypes.TryGetValue(type, out var archetype))
+            {
+                return archetype;
+            }
+            return null;
+        }
+        
+        /// <summary>
+        /// Gets all registered archetypes
+        /// </summary>
+        public IReadOnlyCollection<Archetype> GetAllArchetypes()
+        {
+            return _archetypes.Values;
+        }
 
         /// <summary>
         /// Creates a new entity
@@ -30,6 +72,11 @@ namespace MPirical.Core.ECS
         /// <param name="entity">The entity to destroy</param>
         public void DestroyEntity(Entity entity)
         {
+            foreach (var archetype in _archetypes.Values)
+            {
+                archetype.RemoveEntity(entity);
+            }
+            
             if (!_entityComponents.TryGetValue(entity.Id, out var componentTypes))
                 return;
 
@@ -65,6 +112,26 @@ namespace MPirical.Core.ECS
             if (_entityComponents.TryGetValue(entity.Id, out var componentTypes))
             {
                 componentTypes.Add(componentType);
+                
+                UpdateEntityArchetypes(entity, componentTypes);
+                
+            }
+        }
+        
+        public void RemoveComponent<T>(Entity entity) where T : struct, IComponent
+        {
+            Type componentType = typeof(T);
+            
+            if (_componentStores.TryGetValue(componentType, out var store))
+            {
+                store.Remove(entity.Id);
+            }
+            
+            if (_entityComponents.TryGetValue(entity.Id, out var componentTypes))
+            {
+                componentTypes.Remove(componentType);
+                
+                UpdateEntityArchetypes(entity, componentTypes);
             }
         }
 
@@ -122,6 +189,24 @@ namespace MPirical.Core.ECS
             foreach (var system in _systems)
             {
                 system.Update(deltaTime);
+            }
+        }
+        
+        private void UpdateEntityArchetypes(Entity entity, HashSet<Type> componentTypes)
+        {
+            foreach (var archetype in _archetypes.Values)
+            {
+                bool matches = archetype.Matches(componentTypes);
+                bool contained = archetype.GetEntities().Contains(entity);
+                
+                if (matches && !contained)
+                {
+                    archetype.AddEntity(entity);
+                }
+                else if (!matches && contained)
+                {
+                    archetype.RemoveEntity(entity);
+                }
             }
         }
     }

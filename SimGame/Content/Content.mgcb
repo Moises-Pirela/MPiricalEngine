@@ -13,3 +13,28 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin Fonts/MainMenuFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/MainMenuFont.spritefont
+
+#begin Sounds/menu_confirm.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/menu_confirm.mp3
+
+#begin Sounds/menu_move.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/menu_move.mp3
+
+#begin Sounds/menu_select.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/menu_select.mp3
+
