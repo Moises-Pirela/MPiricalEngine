@@ -10,8 +10,10 @@ using MPirical.Components.AI;
 using MPirical.Content;
 using MPirical.Core;
 using MPirical.Core.ECS;
+using MPirical.Core.Math;
 using MPirical.Rendering;
 using MPirical.Systems;
+using Vector3 = System.Numerics.Vector3;
 
 namespace MPirical;
 
@@ -90,9 +92,8 @@ public class GameSim : Game
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        IsMouseVisible = false; // Hide cursor for first-person view
+        IsMouseVisible = true;
 
-        // Set window size
         _graphics.PreferredBackBufferWidth = 1280;
         _graphics.PreferredBackBufferHeight = 720;
         _graphics.IsFullScreen = false;
@@ -101,7 +102,6 @@ public class GameSim : Game
 
         Window.ClientSizeChanged += OnClientSizeChanged;
 
-        // Initialize game state
         _currentState = GameState.Loading;
     }
 
@@ -128,14 +128,11 @@ public class GameSim : Game
 
     private void UpdateUIScale()
     {
-        // Calculate scale based on current resolution vs base design resolution
         float scaleX = GraphicsDevice.Viewport.Width / _baseResolution.X;
         float scaleY = GraphicsDevice.Viewport.Height / _baseResolution.Y;
 
-        // Use the smaller scale to ensure UI fits within the screen
         float scale = Math.Min(scaleX, scaleY);
 
-        // Update scale vector
         _scaleVector = new Vector2(scale, scale);
     }
 
@@ -189,7 +186,7 @@ public class GameSim : Game
         _deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         HandleGlobalInput();
-
+    
         switch (_currentState)
         {
             case GameState.Loading:
@@ -403,6 +400,11 @@ public class GameSim : Game
             i.MaxSlots = 20;
         });
         _world.AddComponent(_playerEntity, inventory);
+        
+        var cameraConfig = new CameraComponentConfig();
+        var camera = cameraConfig.CreateFirstPerson();
+        camera.PositionOffset = new Vector3(0f, 1.8f, 0f);
+        _world.AddComponent(_playerEntity, camera);
     }
 
 
@@ -415,7 +417,7 @@ public class GameSim : Game
 
         var floorTransform = new TransformComponentConfig().Create(t =>
         {
-            t.Position = new System.Numerics.Vector3(0, 0, 0);
+            t.Position = new System.Numerics.Vector3(0, -10, 0);
             t.Rotation = System.Numerics.Quaternion.Identity;
             t.Scale = new System.Numerics.Vector3(50, 0.1f, 50);
         });

@@ -43,6 +43,11 @@ public struct PlayerComponent : IComponent
     /// Whether the player is currently leaning
     /// </summary>
     public float LeanAmount; // -1 (left) to 1 (right)
+    
+    /// <summary>
+    /// Accumulated yaw angle in radians
+    /// </summary>
+    public float YawAngle;
 }
 
 /// <summary>

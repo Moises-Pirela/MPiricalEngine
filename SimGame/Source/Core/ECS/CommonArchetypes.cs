@@ -15,7 +15,8 @@ namespace MPirical.Core
         ITEM,
         LIGHT,
         DOOR,
-        LOOTABLE
+        LOOTABLE,
+        PHYSICS
     }
     
     /// <summary>
@@ -77,6 +78,10 @@ namespace MPirical.Core
                 typeof(TransformComponent),
                 typeof(InteractableComponent),
                 typeof(InventoryComponent)));
+            
+            world.RegisterArchetype(new Archetype( Archetypes.PHYSICS,
+                typeof(TransformComponent),
+                typeof(RigidBodyComponent)));
         }
     }
 }

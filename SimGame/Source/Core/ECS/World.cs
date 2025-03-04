@@ -9,7 +9,7 @@ namespace MPirical.Core.ECS
     /// </summary>
     public class World
     {
-        private int _nextEntityId = -1;
+        private int _nextEntityId = 0;
         private readonly Dictionary<Type, IComponentStore> _componentStores = new Dictionary<Type, IComponentStore>();
         private readonly List<ISystem> _systems = new List<ISystem>();
         private readonly Dictionary<int, HashSet<Type>> _entityComponents = new Dictionary<int, HashSet<Type>>();

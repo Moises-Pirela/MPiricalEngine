@@ -20,24 +20,24 @@ namespace MPirical.Rendering
         private World _world;
         private GraphicsDevice _graphicsDevice;
         private ContentManager _contentManager;
-        
+
         private BasicEffect _basicEffect;
         private List<Entity> _renderableEntities = new List<Entity>();
-        
+
         // Camera parameters
         private Entity _cameraEntity;
         private Matrix _viewMatrix;
         private Matrix _projectionMatrix;
-        
+
         // Default primitive shapes for testing
         private VertexPositionColor[] _cubeVertices;
         private int[] _cubeIndices;
-        
+
         /// <summary>
         /// Name of this system
         /// </summary>
         public string Name => "RenderingSystem";
-        
+
         /// <summary>
         /// Priority of this system (runs after all updates but before rendering)
         /// </summary>
@@ -52,7 +52,7 @@ namespace MPirical.Rendering
         {
             _graphicsDevice = graphicsDevice;
             _contentManager = contentManager;
-            
+
             // Initialize rendering resources
             InitializeRenderingResources();
         }
@@ -64,16 +64,16 @@ namespace MPirical.Rendering
         public void Initialize(World world)
         {
             _world = world;
-            
+
             // Setup perspective projection
             float aspectRatio = _graphicsDevice.Viewport.AspectRatio;
             _projectionMatrix = Matrix.CreatePerspectiveFieldOfView(
-                MathHelper.PiOver4,    // 45 degrees field of view
+                MathHelper.PiOver4 * 2, // 45 degrees field of view
                 aspectRatio,
-                0.1f,                   // Near clip plane
-                100.0f                  // Far clip plane
+                0.1f, // Near clip plane
+                100.0f // Far clip plane
             );
-            
+
             // Initialize basic shader
             _basicEffect = new BasicEffect(_graphicsDevice)
             {
@@ -82,7 +82,7 @@ namespace MPirical.Rendering
                 World = Matrix.Identity,
                 Projection = _projectionMatrix
             };
-            
+
             // Initialize test primitives
             InitializePrimitives();
         }
@@ -93,33 +93,27 @@ namespace MPirical.Rendering
         /// <param name="deltaTime">Time since last update</param>
         public void Update(float deltaTime)
         {
-            // Update entity lists
-            UpdateEntityLists();
-            
-            // Update camera view matrix
-            UpdateCamera();
-            
-            // Render all entities
+            UpdateCamera(deltaTime);
+
             RenderScene();
         }
-        
+
         /// <summary>
         /// Initialize rendering resources
         /// </summary>
         private void InitializeRenderingResources()
         {
-            // In a full implementation, we would load shaders, textures, etc.
+            //TODO: LOAD SHADERS, TEXTURES, ETC
         }
-        
+
         /// <summary>
         /// Initialize primitive shapes for testing
         /// </summary>
         private void InitializePrimitives()
         {
-            // Create a simple colored cube
             CreateCubePrimitive();
         }
-        
+
         /// <summary>
         /// Create a colored cube primitive
         /// </summary>
@@ -129,18 +123,17 @@ namespace MPirical.Rendering
             Vector3[] cubeCorners = new Vector3[8]
             {
                 new Vector3(-0.5f, -0.5f, -0.5f), // Bottom-back-left
-                new Vector3(0.5f, -0.5f, -0.5f),  // Bottom-back-right
-                new Vector3(0.5f, 0.5f, -0.5f),   // Top-back-right
-                new Vector3(-0.5f, 0.5f, -0.5f),  // Top-back-left
-                new Vector3(-0.5f, -0.5f, 0.5f),  // Bottom-front-left
-                new Vector3(0.5f, -0.5f, 0.5f),   // Bottom-front-right
-                new Vector3(0.5f, 0.5f, 0.5f),    // Top-front-right
-                new Vector3(-0.5f, 0.5f, 0.5f)    // Top-front-left
+                new Vector3(0.5f, -0.5f, -0.5f), // Bottom-back-right
+                new Vector3(0.5f, 0.5f, -0.5f), // Top-back-right
+                new Vector3(-0.5f, 0.5f, -0.5f), // Top-back-left
+                new Vector3(-0.5f, -0.5f, 0.5f), // Bottom-front-left
+                new Vector3(0.5f, -0.5f, 0.5f), // Bottom-front-right
+                new Vector3(0.5f, 0.5f, 0.5f), // Top-front-right
+                new Vector3(-0.5f, 0.5f, 0.5f) // Top-front-left
             };
-            
-            // Create vertex array with positions and colors
+
             _cubeVertices = new VertexPositionColor[8];
-            
+
             _cubeVertices[0] = new VertexPositionColor(cubeCorners[0], Microsoft.Xna.Framework.Color.Red);
             _cubeVertices[1] = new VertexPositionColor(cubeCorners[1], Microsoft.Xna.Framework.Color.Green);
             _cubeVertices[2] = new VertexPositionColor(cubeCorners[2], Microsoft.Xna.Framework.Color.Blue);
@@ -149,8 +142,7 @@ namespace MPirical.Rendering
             _cubeVertices[5] = new VertexPositionColor(cubeCorners[5], Microsoft.Xna.Framework.Color.Cyan);
             _cubeVertices[6] = new VertexPositionColor(cubeCorners[6], Microsoft.Xna.Framework.Color.White);
             _cubeVertices[7] = new VertexPositionColor(cubeCorners[7], Microsoft.Xna.Framework.Color.Orange);
-            
-            // Define the indices for drawing the triangles
+
             _cubeIndices = new int[]
             {
                 // Front face
@@ -167,33 +159,12 @@ namespace MPirical.Rendering
                 0, 1, 5, 0, 5, 4
             };
         }
-        
-        /// <summary>
-        /// Update the lists of entities we're tracking
-        /// </summary>
-        private void UpdateEntityLists()
-        {
-            // In a real implementation, we would have a more efficient way of tracking
-            // entities with renderable components (like a RenderableComponent)
-            
-            // For now, find the first entity with a player component to use as camera
-            _cameraEntity = Entity.Invalid;
-            
-            // The actual implementation would use component queries and tags
-            
-            // Clear renderable entities
-            _renderableEntities.Clear();
-            
-            // We would need to iterate all entities in the world
-            // For now, this is a placeholder implementation
-        }
-        
+
         /// <summary>
         /// Update the camera view matrix
         /// </summary>
-        private void UpdateCamera()
+        private void UpdateCamera(float _deltaTime)
         {
-            // If we don't have a camera entity yet, use a default view
             if (_cameraEntity.Id == -1 || !_world.HasComponent<TransformComponent>(_cameraEntity))
             {
                 _viewMatrix = Matrix.CreateLookAt(
@@ -201,163 +172,218 @@ namespace MPirical.Rendering
                     new Vector3(0, 0, 0),
                     Vector3.Up
                 );
-                
+
                 _basicEffect.View = _viewMatrix;
                 return;
             }
-            
-            // Get camera position and rotation from entity
+
             var transform = _world.GetComponent<TransformComponent>(_cameraEntity);
-            
-            // Convert from System.Numerics to MonoGame
+
+            bool hasCameraComponent = _world.HasComponent<CameraComponent>(_cameraEntity);
+            CameraComponent camera = default;
+
+            if (hasCameraComponent)
+            {
+                camera = _world.GetComponent<CameraComponent>(_cameraEntity);
+            }
+
             Vector3 position = new Vector3(
                 transform.Position.X,
                 transform.Position.Y,
                 transform.Position.Z
             );
-            
-            Quaternion rotation = new Quaternion(
+
+            if (hasCameraComponent)
+            {
+                if (camera.PositionOffset != System.Numerics.Vector3.Zero)
+                {
+                    var worldOffset = Vector3.Transform(
+                        new Vector3(camera.PositionOffset.X, camera.PositionOffset.Y, camera.PositionOffset.Z),
+                        Quaternion.CreateFromRotationMatrix(_viewMatrix)
+                    );
+
+                    position += worldOffset;
+                }
+
+                if (camera.HeadBobAmount > 0)
+                {
+                    if (_world.HasComponent<RigidBodyComponent>(_cameraEntity))
+                    {
+                        var rigidBody = _world.GetComponent<RigidBodyComponent>(_cameraEntity);
+
+                        float speed = rigidBody.Velocity.Length();
+                        if (speed > 0.1f)
+                        {
+                            camera.HeadBobTime += _deltaTime * camera.HeadBobFrequency * speed;
+
+                            float bobOffset = (float)Math.Sin(camera.HeadBobTime) * camera.HeadBobAmount;
+                            position.Y += bobOffset;
+
+                            _world.AddComponent(_cameraEntity, camera);
+                        }
+                    }
+                }
+
+                if (camera.LeanOffset != 0)
+                {
+                    Vector3 _right = Vector3.Transform(Vector3.Right,
+                        new Quaternion(transform.Rotation.X, transform.Rotation.Y, transform.Rotation.Z,
+                            transform.Rotation.W));
+                    position += _right * camera.LeanOffset;
+                }
+
+                float aspectRatio = _graphicsDevice.Viewport.AspectRatio;
+                camera.AspectRatio = aspectRatio; 
+
+                if (camera.IsOrthographic)
+                {
+                    _projectionMatrix = Matrix.CreateOrthographic(
+                        camera.OrthographicSize * aspectRatio * 2 * camera.Zoom,
+                        camera.OrthographicSize * 2 * camera.Zoom,
+                        camera.NearClipPlane,
+                        camera.FarClipPlane
+                    );
+                }
+                else
+                {
+                    _projectionMatrix = Matrix.CreatePerspectiveFieldOfView(
+                        MathHelper.ToRadians(camera.FieldOfView) / camera.Zoom,
+                        aspectRatio,
+                        camera.NearClipPlane,
+                        camera.FarClipPlane
+                    );
+                }
+
+                _basicEffect.Projection = _projectionMatrix;
+            }
+
+            Quaternion yawRotation = new Quaternion(
                 transform.Rotation.X,
                 transform.Rotation.Y,
                 transform.Rotation.Z,
                 transform.Rotation.W
             );
             
-            // Calculate forward and up vectors
-            Vector3 forward = Vector3.Transform(Vector3.Forward, rotation);
-            Vector3 up = Vector3.Transform(Vector3.Up, rotation);
-            
-            // Create view matrix
+            Vector3 right = Vector3.Transform(Vector3.Right, yawRotation);
+            Quaternion pitchRotation = Quaternion.CreateFromAxisAngle(right, camera.PitchAngle);
+            Quaternion finalRotation = Quaternion.Multiply(pitchRotation, yawRotation);
+
+            Vector3 forward = Vector3.Transform(Vector3.Forward, finalRotation);
+            Vector3 up = Vector3.Transform(Vector3.Up, finalRotation);
+
             _viewMatrix = Matrix.CreateLookAt(
                 position,
                 position + forward,
                 up
             );
-            
-            // Update shader
+
             _basicEffect.View = _viewMatrix;
         }
-        
+
         /// <summary>
         /// Render the scene
         /// </summary>
         private void RenderScene()
         {
-            // Clear the screen
             _graphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
-            
-            // Enable depth testing
+
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            
-            // Render all entities
+
             foreach (var entity in _renderableEntities)
             {
                 RenderEntity(entity);
             }
-            
-            // For testing, render placeholder geometry
+
             RenderTestGeometry();
         }
-        
+
         /// <summary>
         /// Render a single entity
         /// </summary>
         /// <param name="entity">Entity to render</param>
         private void RenderEntity(Entity entity)
         {
-            // Check if entity has required components
             if (!_world.HasComponent<TransformComponent>(entity))
                 return;
-            
-            // Get transform component
+
             var transform = _world.GetComponent<TransformComponent>(entity);
-            
-            // Convert to MonoGame types
+
             Vector3 position = new Vector3(
                 transform.Position.X,
                 transform.Position.Y,
                 transform.Position.Z
             );
-            
+
             Quaternion rotation = new Quaternion(
                 transform.Rotation.X,
                 transform.Rotation.Y,
                 transform.Rotation.Z,
                 transform.Rotation.W
             );
-            
+
             Vector3 scale = new Vector3(
                 transform.Scale.X,
                 transform.Scale.Y,
                 transform.Scale.Z
             );
-            
-            // Create world matrix
+
             Matrix worldMatrix = Matrix.CreateScale(scale) *
-                               Matrix.CreateFromQuaternion(rotation) *
-                               Matrix.CreateTranslation(position);
-            
-            // Set world matrix in shader
+                                 Matrix.CreateFromQuaternion(rotation) *
+                                 Matrix.CreateTranslation(position);
+
             _basicEffect.World = worldMatrix;
             
-            // In a full implementation, we would check for mesh components,
-            // material components, etc. and render accordingly
-            
-            // For now, render a default shape
+            //TODO: RENDER MESH 
+
             RenderCube();
         }
-        
+
         /// <summary>
         /// Render test geometry for placeholder visualization
         /// </summary>
         private void RenderTestGeometry()
         {
-            // Render ground plane
-            Matrix groundMatrix = Matrix.CreateScale(50.0f, 0.1f, 50.0f) * 
-                                Matrix.CreateTranslation(0, 0, 0);
+            Matrix groundMatrix = Matrix.CreateScale(50.0f, 0.1f, 50.0f) *
+                                  Matrix.CreateTranslation(0, 0, 0);
             _basicEffect.World = groundMatrix;
             RenderCube();
-            
-            // Render test cubes
+
             for (int x = -5; x <= 5; x += 2)
             {
                 for (int z = -5; z <= 5; z += 2)
                 {
-                    // Skip center area
                     if (Math.Abs(x) < 3 && Math.Abs(z) < 3)
                         continue;
-                    
-                    Matrix cubeMatrix = Matrix.CreateScale(1, 1, 1) * 
-                                      Matrix.CreateTranslation(x, 1, z);
+
+                    Matrix cubeMatrix = Matrix.CreateScale(1, 1, 1) *
+                                        Matrix.CreateTranslation(x, 1, z);
                     _basicEffect.World = cubeMatrix;
                     RenderCube();
                 }
             }
         }
-        
+
         /// <summary>
         /// Render a cube using the configured effect
         /// </summary>
         private void RenderCube()
         {
-            // Apply the shader
             foreach (EffectPass pass in _basicEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                
-                // Draw the cube
+
                 _graphicsDevice.DrawUserIndexedPrimitives(
                     PrimitiveType.TriangleList,
                     _cubeVertices,
-                    0,                  // vertex buffer offset
-                    _cubeVertices.Length,  // number of vertices
+                    0, // vertex buffer offset
+                    _cubeVertices.Length, // number of vertices
                     _cubeIndices,
-                    0,                  // index buffer offset
-                    _cubeIndices.Length / 3  // number of primitives
+                    0, // index buffer offset
+                    _cubeIndices.Length / 3 // number of primitives
                 );
             }
         }
-        
+
         /// <summary>
         /// Set the camera entity to use for rendering
         /// </summary>
@@ -366,7 +392,7 @@ namespace MPirical.Rendering
         {
             _cameraEntity = cameraEntity;
         }
-        
+
         /// <summary>
         /// Convert from System.Numerics.Vector3 to Microsoft.Xna.Framework.Vector3
         /// </summary>
@@ -376,7 +402,7 @@ namespace MPirical.Rendering
         {
             return new Vector3(vector.X, vector.Y, vector.Z);
         }
-        
+
         /// <summary>
         /// Convert from System.Numerics.Quaternion to Microsoft.Xna.Framework.Quaternion
         /// </summary>
