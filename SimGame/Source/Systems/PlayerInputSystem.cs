@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Input;
 using MPirical.Components;
 using MPirical.Core.ECS;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MPirical.Content;
 using MPirical.Core;
 using MPirical.Core.Math;
 using Quaternion = System.Numerics.Quaternion;
@@ -24,8 +26,11 @@ public class PlayerInputSystem : ISystem
     private MouseState _currentMouseState;
     private MouseState _previousMouseState;
 
-    private bool _isMouseLocked = false;
+    private bool _isMouseCaptured = true;
+    private Point _screenCenter;
     private Vector2 _mouseDelta = Vector2.Zero;
+    
+    
 
     /// <summary>
     /// Name of this system
@@ -50,6 +55,12 @@ public class PlayerInputSystem : ISystem
         _previousKeyboardState = _currentKeyboardState;
         _currentMouseState = Mouse.GetState();
         _previousMouseState = _currentMouseState;
+        
+        GraphicsDevice graphicsDevice = GameServices.GetService<GraphicsDevice>();
+        _screenCenter = new Point(graphicsDevice.Viewport.Width / 2, graphicsDevice.Viewport.Height / 2);
+        
+        CaptureMouse();
+        
     }
 
     /// <summary>
@@ -88,18 +99,46 @@ public class PlayerInputSystem : ISystem
         _currentKeyboardState = Keyboard.GetState();
         _previousMouseState = _currentMouseState;
         _currentMouseState = Mouse.GetState();
-
-        if (!_isMouseLocked)
+        
+        if (_isMouseCaptured)
         {
+            // Calculate mouse delta from the center of the screen
             _mouseDelta = new Vector2(
-                _currentMouseState.X - _previousMouseState.X,
-                _currentMouseState.Y - _previousMouseState.Y
+                _currentMouseState.X - _screenCenter.X,
+                _currentMouseState.Y - _screenCenter.Y
             );
+            
+            // Reset mouse position to center to allow for continuous rotation
+            if (_mouseDelta != Vector2.Zero)
+            {
+                Mouse.SetPosition(_screenCenter.X, _screenCenter.Y);
+            }
         }
         else
         {
             _mouseDelta = Vector2.Zero;
         }
+    }
+    
+    /// <summary>
+    /// Capture the mouse at screen center
+    /// </summary>
+    private void CaptureMouse()
+    {
+        _isMouseCaptured = true;
+        Mouse.SetPosition(_screenCenter.X, _screenCenter.Y);
+        Game game = GameServices.GetService<Game>();
+        game.IsMouseVisible = false;
+    }
+
+    /// <summary>
+    /// Release the mouse
+    /// </summary>
+    private void ReleaseMouse()
+    {
+        _isMouseCaptured = false;
+        Game game = GameServices.GetService<Game>();
+        game.IsMouseVisible = true;
     }
 
     /// <summary>
