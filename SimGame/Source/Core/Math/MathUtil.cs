@@ -18,6 +18,15 @@ namespace MPirical.Core.Math
         /// </summary>
         public const float Epsilon = 0.00001f;
         
+        public static float WrapAngle(float angle)
+        {
+            // Wrap angle to range [0, 2π] or [0, 360] degrees
+            angle = angle % (2 * MathF.PI);
+            if (angle < 0)
+                angle += 2 * MathF.PI;
+            return angle;
+        }
+        
         /// <summary>
         /// Converts degrees to radians
         /// </summary>

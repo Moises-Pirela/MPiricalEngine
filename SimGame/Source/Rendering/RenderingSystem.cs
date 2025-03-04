@@ -197,10 +197,8 @@ namespace MPirical.Rendering
             {
                 if (camera.PositionOffset != System.Numerics.Vector3.Zero)
                 {
-                    var worldOffset = Vector3.Transform(
-                        new Vector3(camera.PositionOffset.X, camera.PositionOffset.Y, camera.PositionOffset.Z),
-                        Quaternion.CreateFromRotationMatrix(_viewMatrix)
-                    );
+                    var worldOffset = new Vector3(camera.PositionOffset.X, camera.PositionOffset.Y,
+                        camera.PositionOffset.Z);
 
                     position += worldOffset;
                 }
@@ -233,7 +231,7 @@ namespace MPirical.Rendering
                 }
 
                 float aspectRatio = _graphicsDevice.Viewport.AspectRatio;
-                camera.AspectRatio = aspectRatio; 
+                camera.AspectRatio = aspectRatio;
 
                 if (camera.IsOrthographic)
                 {
@@ -256,25 +254,33 @@ namespace MPirical.Rendering
 
                 _basicEffect.Projection = _projectionMatrix;
             }
+            
+            camera.PitchAngle = MathHelper.Clamp(camera.PitchAngle, 
+                MathHelper.ToRadians(-89.0f), 
+                MathHelper.ToRadians(89.0f));
 
             Quaternion yawRotation = new Quaternion(
                 transform.Rotation.X,
                 transform.Rotation.Y,
-                camera.RollAngle,
+                transform.Rotation.Z,
                 transform.Rotation.W
             );
-            
+
             Vector3 right = Vector3.Transform(Vector3.Right, yawRotation);
             Quaternion pitchRotation = Quaternion.CreateFromAxisAngle(right, camera.PitchAngle);
-            Quaternion finalRotation = Quaternion.Multiply(pitchRotation, yawRotation);
-
-            Vector3 forward = Vector3.Transform(Vector3.Forward, finalRotation);
-            Vector3 up = Vector3.Transform(Vector3.Up, finalRotation);
+            Quaternion combinedRotation = Quaternion.Multiply(pitchRotation, yawRotation);
+            
+            Vector3 forward = Vector3.Transform(Vector3.Forward, combinedRotation);
+            Quaternion rollRotation = Quaternion.CreateFromAxisAngle(forward, -camera.RollAngle);
+            Quaternion finalRotation = Quaternion.Multiply(rollRotation, combinedRotation);
+            
+            Vector3 finalForward = Vector3.Transform(Vector3.Forward, finalRotation);
+            Vector3 finalUp = Vector3.Transform(Vector3.Up, finalRotation);
 
             _viewMatrix = Matrix.CreateLookAt(
                 position,
-                position + forward,
-                up
+                position + finalForward,
+                finalUp
             );
 
             _basicEffect.View = _viewMatrix;
@@ -332,7 +338,7 @@ namespace MPirical.Rendering
                                  Matrix.CreateTranslation(position);
 
             _basicEffect.World = worldMatrix;
-            
+
             //TODO: RENDER MESH 
 
             RenderCube();

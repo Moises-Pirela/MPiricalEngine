@@ -151,12 +151,14 @@ public class PlayerInputSystem : ISystem
 
         float yawDelta = -_mouseDelta.X * player.MouseSensitivity;
         float pitchDelta = -_mouseDelta.Y * player.MouseSensitivity;
-    
+
         player.YawAngle += yawDelta;
         camera.PitchAngle += pitchDelta;
+
+        camera.PitchAngle = MathUtil.Clamp(camera.PitchAngle, -89.0f, 89.0f);
     
-        camera.PitchAngle = MathUtil.Clamp(camera.PitchAngle, -90, 90);
-    
+        player.YawAngle = MathUtil.WrapAngle(player.YawAngle);
+
         Quaternion bodyRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, player.YawAngle);
         transform.Rotation = bodyRotation;
     }
