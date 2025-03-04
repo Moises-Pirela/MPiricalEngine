@@ -65,16 +65,14 @@ namespace MPirical.Rendering
         {
             _world = world;
 
-            // Setup perspective projection
             float aspectRatio = _graphicsDevice.Viewport.AspectRatio;
             _projectionMatrix = Matrix.CreatePerspectiveFieldOfView(
-                MathHelper.PiOver4 * 2, // 45 degrees field of view
+                MathHelper.ToRadians(90),
                 aspectRatio,
-                0.1f, // Near clip plane
-                100.0f // Far clip plane
+                0.1f,
+                100.0f
             );
 
-            // Initialize basic shader
             _basicEffect = new BasicEffect(_graphicsDevice)
             {
                 VertexColorEnabled = true,
@@ -83,7 +81,6 @@ namespace MPirical.Rendering
                 Projection = _projectionMatrix
             };
 
-            // Initialize test primitives
             InitializePrimitives();
         }
 
