@@ -204,7 +204,11 @@ public class PlayerInputSystem : ISystem
 
         rigidBody.Velocity = new Vector3(movement.X, rigidBody.Velocity.Y, movement.Z);
 
-        cameraComponent.LeanOffset = player.LeanAmount * 0.5f;
+        cameraComponent.LeanOffset = player.LeanAmount * 1.5f;
+        
+        float leanRotationDegrees = player.LeanAmount * -5.0f;
+        float leanRotationRadians = MathUtil.ToRadians(leanRotationDegrees);    
+        cameraComponent.RollAngle = leanRotationRadians;
     }
 
     /// <summary>

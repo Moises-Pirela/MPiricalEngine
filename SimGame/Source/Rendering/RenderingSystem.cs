@@ -260,7 +260,7 @@ namespace MPirical.Rendering
             Quaternion yawRotation = new Quaternion(
                 transform.Rotation.X,
                 transform.Rotation.Y,
-                transform.Rotation.Z,
+                camera.RollAngle,
                 transform.Rotation.W
             );
             

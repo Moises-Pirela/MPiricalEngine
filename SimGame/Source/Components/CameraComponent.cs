@@ -75,6 +75,11 @@ namespace MPirical.Components
         public float PitchAngle; 
         
         /// <summary>
+        /// Roll angle for camera tilting (when leaning)
+        /// </summary>
+        public float RollAngle;
+        
+        /// <summary>
         /// Whether to apply post-processing effects
         /// </summary>
         public bool UsePostProcessing;

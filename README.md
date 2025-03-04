@@ -137,9 +137,7 @@ SimGame/
 
 ## License
 
-[Add your license information here]
 
 ## Acknowledgments
 
 - MonoGame framework
-- [Any other libraries or resources used]
